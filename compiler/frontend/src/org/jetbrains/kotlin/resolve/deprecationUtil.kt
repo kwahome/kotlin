@@ -329,9 +329,6 @@ class DeprecationResolver(
             is DescriptorDerivedFromTypeAlias -> {
                 result.addAll(typeAliasDescriptor.getOwnDeprecations())
             }
-            is ConstructorDescriptor -> {
-                addDeprecationIfPresent(containingDeclaration)
-            }
             is PropertyAccessorDescriptor -> {
                 addDeprecationIfPresent(correspondingProperty)
 
