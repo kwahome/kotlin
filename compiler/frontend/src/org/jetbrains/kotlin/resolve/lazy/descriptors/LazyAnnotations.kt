@@ -83,8 +83,9 @@ class LazyAnnotations(
     }
 
     override fun forceResolveAllContents() {
-        // To resolve all entries
-        getAllAnnotations()
+        for (annotation in getAllAnnotations()) {
+            ForceResolveUtil.forceResolveAllContents(annotation.annotation)
+        }
     }
 }
 
