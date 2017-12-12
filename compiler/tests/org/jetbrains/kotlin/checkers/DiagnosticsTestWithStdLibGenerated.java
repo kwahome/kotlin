@@ -1752,6 +1752,69 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
         }
     }
 
+    @TestMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Experimental extends AbstractDiagnosticsTestWithStdLib {
+        public void testAllFilesPresentInExperimental() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/testsWithStdLib/experimental"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("annotation.kt")
+        public void testAnnotation() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/annotation.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("bodyUsages.kt")
+        public void testBodyUsages() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/bodyUsages.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("classMembers.kt")
+        public void testClassMembers() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/classMembers.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("classMembersOverlyExperimental.kt")
+        public void testClassMembersOverlyExperimental() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/classMembersOverlyExperimental.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("sourceOnlyVsBinary.kt")
+        public void testSourceOnlyVsBinary() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/sourceOnlyVsBinary.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("topLevel.kt")
+        public void testTopLevel() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/topLevel.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("useExperimentalOnFile.kt")
+        public void testUseExperimentalOnFile() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalOnFile.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("useExperimentalTargets.kt")
+        public void testUseExperimentalTargets() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalTargets.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("useExperimentalWithSeveralAnnotations.kt")
+        public void testUseExperimentalWithSeveralAnnotations() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/useExperimentalWithSeveralAnnotations.kt");
+            doTest(fileName);
+        }
+    }
+
     @TestMetadata("compiler/testData/diagnostics/testsWithStdLib/forInArrayLoop")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

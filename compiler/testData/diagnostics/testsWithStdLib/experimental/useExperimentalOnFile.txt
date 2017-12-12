@@ -1,0 +1,32 @@
+package
+
+package api {
+    @api.BinaryExperimentalAPI public fun binary(): kotlin.Unit
+    @api.SourceOnlyExperimentalAPI public fun sourceOnly(): kotlin.Unit
+
+    @kotlin.Experimental(level = ExperimentalLevel.WARNING, scope = ExperimentalScope.BINARY) @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.FUNCTION}) public final annotation class BinaryExperimentalAPI : kotlin.Annotation {
+        public constructor BinaryExperimentalAPI()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+
+    @kotlin.Experimental(level = ExperimentalLevel.WARNING, scope = ExperimentalScope.SOURCE_ONLY) @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.FUNCTION}) public final annotation class SourceOnlyExperimentalAPI : kotlin.Annotation {
+        public constructor SourceOnlyExperimentalAPI()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}
+
+package usage {
+    public fun use(): kotlin.Unit
+
+    public final class Use {
+        public constructor Use()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+        public final fun use(): kotlin.Unit
+    }
+}

@@ -1,0 +1,30 @@
+package
+
+package api {
+    @api.ExperimentalBinaryAPI public fun binary(): kotlin.Unit
+    @api.ExperimentalSourceOnlyAPI public fun sourceOnly(): kotlin.Unit
+
+    @kotlin.Experimental(level = ExperimentalLevel.WARNING, scope = ExperimentalScope.BINARY) public final annotation class ExperimentalBinaryAPI : kotlin.Annotation {
+        public constructor ExperimentalBinaryAPI()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+
+    @kotlin.Experimental(level = ExperimentalLevel.WARNING, scope = ExperimentalScope.SOURCE_ONLY) public final annotation class ExperimentalSourceOnlyAPI : kotlin.Annotation {
+        public constructor ExperimentalSourceOnlyAPI()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}
+
+package usage1 {
+    @api.ExperimentalSourceOnlyAPI @api.ExperimentalBinaryAPI public fun recursiveUse(): kotlin.Unit
+    @kotlin.UseExperimental(annotationClass = {api.ExperimentalSourceOnlyAPI::class}) @api.ExperimentalBinaryAPI public fun use(): kotlin.Unit
+    @api.ExperimentalBinaryAPI public fun useUse(): kotlin.Unit
+}
+
+package usage2 {
+    public fun useUse(): kotlin.Unit
+}
