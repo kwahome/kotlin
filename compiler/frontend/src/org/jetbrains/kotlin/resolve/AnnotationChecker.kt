@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.descriptors.annotations.KotlinRetention
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget.*
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
@@ -188,6 +189,8 @@ class AnnotationChecker(
     }
 
     companion object {
+        private val TARGET_ALLOWED_TARGETS = Name.identifier("allowedTargets")
+
         private fun applicableTargetSet(entry: KtAnnotationEntry, trace: BindingTrace): Set<KotlinTarget> {
             val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: return KotlinTarget.DEFAULT_TARGET_SET
             // For descriptor with error type, all targets are considered as possible
@@ -195,16 +198,19 @@ class AnnotationChecker(
             return descriptor.annotationClass?.let(this::applicableTargetSet) ?: KotlinTarget.DEFAULT_TARGET_SET
         }
 
-        @JvmStatic fun applicableTargetSet(descriptor: AnnotationDescriptor): Set<KotlinTarget> {
+        @JvmStatic
+        fun applicableTargetSet(descriptor: AnnotationDescriptor): Set<KotlinTarget> {
             val classDescriptor = descriptor.annotationClass ?: return emptySet()
             return applicableTargetSet(classDescriptor) ?: KotlinTarget.DEFAULT_TARGET_SET
         }
 
         fun applicableTargetSet(classDescriptor: ClassDescriptor): Set<KotlinTarget>? {
-            val targetEntryDescriptor = classDescriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.target)
-                                        ?: return null
-            val valueArguments = targetEntryDescriptor.allValueArguments
-            val valueArgument = valueArguments.entries.firstOrNull()?.value as? ArrayValue ?: return null
+            val targetEntryDescriptor = classDescriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.target) ?: return null
+            return loadAnnotationTargets(targetEntryDescriptor)
+        }
+
+        fun loadAnnotationTargets(targetEntryDescriptor: AnnotationDescriptor): Set<KotlinTarget>? {
+            val valueArgument = targetEntryDescriptor.allValueArguments[TARGET_ALLOWED_TARGETS] as? ArrayValue ?: return null
             return valueArgument.value.filterIsInstance<EnumValue>().mapNotNull {
                 KotlinTarget.valueOrNull(it.value.name.asString())
             }.toSet()

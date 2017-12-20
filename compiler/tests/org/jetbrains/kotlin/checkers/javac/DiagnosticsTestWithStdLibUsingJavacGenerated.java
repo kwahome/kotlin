@@ -1784,6 +1784,18 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             doTest(fileName);
         }
 
+        @TestMetadata("incorrectTargetsForExperimentalAnnotation.kt")
+        public void testIncorrectTargetsForExperimentalAnnotation() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/incorrectTargetsForExperimentalAnnotation.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("incorrectUseExperimental.kt")
+        public void testIncorrectUseExperimental() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/incorrectUseExperimental.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("sourceOnlyVsBinary.kt")
         public void testSourceOnlyVsBinary() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/experimental/sourceOnlyVsBinary.kt");

@@ -107,7 +107,9 @@ private val DEFAULT_CLASSIFIER_USAGE_CHECKERS = listOf(
         DeprecatedClassifierUsageChecker(), ApiVersionClassifierUsageChecker, MissingDependencyClassChecker.ClassifierUsage,
         ExperimentalUsageChecker.ClassifierUsage
 )
-private val DEFAULT_ANNOTATION_CHECKERS = emptyList<AdditionalAnnotationChecker>()
+private val DEFAULT_ANNOTATION_CHECKERS = listOf<AdditionalAnnotationChecker>(
+        ExperimentalUsageChecker.ExperimentalDeclarationChecker
+)
 
 
 abstract class PlatformConfigurator(

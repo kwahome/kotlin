@@ -18,19 +18,19 @@ package org.jetbrains.kotlin.resolve.checkers
 
 import com.intellij.psi.PsiCompiledElement
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -93,22 +93,21 @@ object ExperimentalUsageChecker : CallChecker {
         val result = SmartSet.create<Experimentality>()
 
         for (annotation in annotations) {
-            result.addIfNotNull(annotation.loadExperimentalityForMarkerAnnotation())
+            result.addIfNotNull(annotation.annotationClass?.loadExperimentalityForMarkerAnnotation())
         }
 
         val container = containingDeclaration
         if (container is ClassDescriptor && this !is ConstructorDescriptor) {
             for (annotation in container.annotations) {
-                result.addIfNotNull(annotation.loadExperimentalityForMarkerAnnotation())
+                result.addIfNotNull(annotation.annotationClass?.loadExperimentalityForMarkerAnnotation())
             }
         }
 
         return result
     }
 
-    private fun AnnotationDescriptor.loadExperimentalityForMarkerAnnotation(): Experimentality? {
-        val experimental = annotationClass?.annotations?.findAnnotation(EXPERIMENTAL_FQ_NAME) ?: return null
-        val annotationFqName = fqName ?: return null
+    private fun ClassDescriptor.loadExperimentalityForMarkerAnnotation(): Experimentality? {
+        val experimental = annotations.findAnnotation(EXPERIMENTAL_FQ_NAME) ?: return null
 
         val severity = when ((experimental.allValueArguments[LEVEL] as? EnumValue)?.value?.name) {
             WARNING_LEVEL -> Experimentality.Severity.WARNING
@@ -122,7 +121,7 @@ object ExperimentalUsageChecker : CallChecker {
             else -> return null
         }
 
-        return Experimentality(annotationFqName, severity, scope)
+        return Experimentality(fqNameSafe, severity, scope)
     }
 
     // Returns true if this element appears in the body of some function and is not visible in any non-local declaration signature.
@@ -189,6 +188,56 @@ object ExperimentalUsageChecker : CallChecker {
     object ClassifierUsage : ClassifierUsageChecker {
         override fun check(targetDescriptor: ClassifierDescriptor, element: PsiElement, context: ClassifierUsageCheckerContext) {
             checkExperimental(targetDescriptor, element, context.trace)
+        }
+    }
+
+    object ExperimentalDeclarationChecker : AdditionalAnnotationChecker {
+        private val wrongTargetsForExperimentalAnnotations = setOf(KotlinTarget.EXPRESSION, KotlinTarget.FILE)
+
+        override fun checkEntries(entries: List<KtAnnotationEntry>, actualTargets: List<KotlinTarget>, trace: BindingTrace) {
+            var isAnnotatedWithExperimental = false
+
+            for (entry in entries) {
+                val annotation = trace.bindingContext.get(BindingContext.ANNOTATION, entry)
+                if (annotation?.fqName == USE_EXPERIMENTAL_FQ_NAME) {
+                    val annotationClasses =
+                            (annotation.allValueArguments[USE_EXPERIMENTAL_ANNOTATION_CLASS] as? ArrayValue)?.value ?: continue
+                    if (annotationClasses.isEmpty()) {
+                        trace.report(Errors.USE_EXPERIMENTAL_WITHOUT_ARGUMENTS.on(entry))
+                        continue
+                    }
+                    for (annotationClass in annotationClasses) {
+                        val classDescriptor =
+                                (annotationClass as? KClassValue)?.value?.constructor?.declarationDescriptor as? ClassDescriptor ?: continue
+                        val experimentality = classDescriptor.loadExperimentalityForMarkerAnnotation()
+                        if (experimentality == null) {
+                            trace.report(Errors.USE_EXPERIMENTAL_ARGUMENT_IS_NOT_MARKER.on(entry, classDescriptor.fqNameSafe))
+                        }
+                        else if (experimentality.scope == Experimentality.Scope.BINARY) {
+                            trace.report(Errors.USE_EXPERIMENTAL_ARGUMENT_HAS_BINARY_SCOPE.on(entry, experimentality.annotationFqName))
+                        }
+                    }
+                }
+
+                if (annotation?.fqName == EXPERIMENTAL_FQ_NAME) {
+                    isAnnotatedWithExperimental = true
+                }
+            }
+
+            if (isAnnotatedWithExperimental) {
+                val resolvedEntries = entries.associate { entry -> entry to trace.bindingContext.get(BindingContext.ANNOTATION, entry) }
+                for ((entry, descriptor) in resolvedEntries) {
+                    if (descriptor != null && descriptor.fqName == KotlinBuiltIns.FQ_NAMES.target) {
+                        val allowedTargets = AnnotationChecker.loadAnnotationTargets(descriptor) ?: continue
+                        val wrongTargets = allowedTargets.intersect(wrongTargetsForExperimentalAnnotations)
+                        if (wrongTargets.isNotEmpty()) {
+                            trace.report(Errors.EXPERIMENTAL_ANNOTATION_WITH_WRONG_TARGET.on(
+                                    entry, wrongTargets.joinToString(transform = KotlinTarget::description)
+                            ))
+                        }
+                    }
+                }
+            }
         }
     }
 }
