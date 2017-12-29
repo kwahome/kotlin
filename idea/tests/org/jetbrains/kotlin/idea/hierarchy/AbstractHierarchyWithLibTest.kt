@@ -51,7 +51,7 @@ abstract class AbstractHierarchyWithLibTest : AbstractHierarchyTest() {
                     TypeHierarchyTreeStructure(
                             project,
                             targetClass,
-                            if (folderName.contains("annotation")) HierarchyBrowserBaseEx.SCOPE_PROJECT else HierarchyBrowserBaseEx.SCOPE_ALL)
+                            HierarchyBrowserBaseEx.SCOPE_PROJECT)
                 }, *filesToConfigure)
     }
 
