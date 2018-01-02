@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
+// MODULE: api
 // FILE: api.kt
 
 package api
@@ -15,6 +16,7 @@ fun sourceOnly() {}
 @ExperimentalBinaryAPI
 fun binary() {}
 
+// MODULE: usage1(api)
 // FILE: usage.kt
 
 package usage1
@@ -42,6 +44,7 @@ fun recursiveUse() {
     recursiveUse()
 }
 
+// MODULE: usage2(api,usage1)
 // FILE: usage-no-annotation.txt
 
 package usage2

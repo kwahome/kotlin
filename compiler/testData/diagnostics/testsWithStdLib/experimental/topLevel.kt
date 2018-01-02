@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
+// MODULE: api
 // FILE: api.kt
 
 package api
@@ -17,6 +18,7 @@ val property: String = ""
 @ExperimentalAPI
 typealias Typealias = String
 
+// MODULE: usage1(api)
 // FILE: usage-propagate.kt
 
 package usage1
@@ -39,6 +41,7 @@ class Use {
     }
 }
 
+// MODULE: usage2(api)
 // FILE: usage-use.kt
 
 package usage2
@@ -63,6 +66,7 @@ class Use {
     }
 }
 
+// MODULE: usage3(api)
 // FILE: usage-none.kt
 
 package usage3

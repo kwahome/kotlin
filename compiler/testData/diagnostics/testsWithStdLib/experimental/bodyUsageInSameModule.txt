@@ -1,4 +1,3 @@
-// -- Module: <api> --
 package
 
 package api {
@@ -20,29 +19,8 @@ package api {
     }
 }
 
-
-// -- Module: <usage1> --
-package
-
-package api {
-}
-
-package usage1 {
-    @api.ExperimentalSourceOnlyAPI @api.ExperimentalBinaryAPI public fun recursiveUse(): kotlin.Unit
-    @kotlin.UseExperimental(annotationClass = {api.ExperimentalSourceOnlyAPI::class}) @api.ExperimentalBinaryAPI public fun use(): kotlin.Unit
-    @api.ExperimentalBinaryAPI public fun useUse(): kotlin.Unit
-}
-
-
-// -- Module: <usage2> --
-package
-
-package api {
-}
-
-package usage1 {
-}
-
-package usage2 {
-    public fun useUse(): kotlin.Unit
+package usage {
+    public val use2: kotlin.Unit
+    public val use3: kotlin.Unit
+    public fun use1(): kotlin.Unit
 }

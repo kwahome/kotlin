@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
+// MODULE: api
 // FILE: api.kt
 
 package api
@@ -10,6 +11,7 @@ annotation class E
 @E
 open class Foo(val s: String = "")
 
+// MODULE: usage(api)
 // FILE: usage.kt
 
 import api.*

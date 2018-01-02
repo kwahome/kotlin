@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
+// MODULE: api
 // FILE: api.kt
 
 package api
@@ -22,6 +23,7 @@ class C {
     }
 }
 
+// MODULE: usage(api)
 // FILE: usage.kt
 
 package usage

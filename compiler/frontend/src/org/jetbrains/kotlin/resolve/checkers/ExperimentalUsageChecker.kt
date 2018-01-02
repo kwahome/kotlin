@@ -19,10 +19,7 @@ package org.jetbrains.kotlin.resolve.checkers
 import com.intellij.psi.PsiCompiledElement
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -39,6 +36,7 @@ import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.utils.SmartSet
 import org.jetbrains.kotlin.utils.addIfNotNull
 
@@ -62,19 +60,27 @@ object ExperimentalUsageChecker : CallChecker {
 
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         // TODO: ensure reportOn is never a synthetic element
-        checkExperimental(resolvedCall.resultingDescriptor, reportOn, context.trace)
+        checkExperimental(resolvedCall.resultingDescriptor, reportOn, context.trace, context.moduleDescriptor)
     }
 
-    private fun checkExperimental(descriptor: DeclarationDescriptor, element: PsiElement, trace: BindingTrace) {
+    private fun checkExperimental(descriptor: DeclarationDescriptor, element: PsiElement, trace: BindingTrace, module: ModuleDescriptor) {
         assert(element !is PsiCompiledElement) {
             "Checkers should only be run on source PSI elements: ${element.getElementTextWithContext()}"
         }
 
-        for ((annotationFqName, severity, scope) in descriptor.loadExperimentalities()) {
+        val experimentalities = descriptor.loadExperimentalities()
+        if (experimentalities.isEmpty()) return
+
+        val isBodyUsage: Boolean by lazy(LazyThreadSafetyMode.NONE) { element.isBodyUsage() }
+        val isBodyUsageInSameModule =
+                descriptor.module == module && isBodyUsage
+
+        for ((annotationFqName, severity, scope) in experimentalities) {
             val isBodyUsageOfSourceOnlyExperimentality =
-                    scope == Experimentality.Scope.SOURCE_ONLY && element.isBodyUsage()
+                    scope == Experimentality.Scope.SOURCE_ONLY && isBodyUsage
 
             val isExperimentalityAccepted =
+                    isBodyUsageInSameModule ||
                     (isBodyUsageOfSourceOnlyExperimentality &&
                      element.hasContainerAnnotatedWithUseExperimental(annotationFqName, trace.bindingContext)) ||
                     element.propagates(annotationFqName, trace.bindingContext)
@@ -187,7 +193,7 @@ object ExperimentalUsageChecker : CallChecker {
 
     object ClassifierUsage : ClassifierUsageChecker {
         override fun check(targetDescriptor: ClassifierDescriptor, element: PsiElement, context: ClassifierUsageCheckerContext) {
-            checkExperimental(targetDescriptor, element, context.trace)
+            checkExperimental(targetDescriptor, element, context.trace, context.moduleDescriptor)
         }
     }
 

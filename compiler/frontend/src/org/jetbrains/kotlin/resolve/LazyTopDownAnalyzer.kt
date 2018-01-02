@@ -220,7 +220,7 @@ class LazyTopDownAnalyzer(
 
         checkClassifierUsages(
                 declarations, classifierUsageCheckers,
-                ClassifierUsageCheckerContext(trace, languageVersionSettings, deprecationResolver)
+                ClassifierUsageCheckerContext(trace, languageVersionSettings, deprecationResolver, moduleDescriptor)
         )
 
         return c

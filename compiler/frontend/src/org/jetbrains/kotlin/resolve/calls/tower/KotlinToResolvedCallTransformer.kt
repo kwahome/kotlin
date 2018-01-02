@@ -59,7 +59,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.*
 
-
 class KotlinToResolvedCallTransformer(
         private val callCheckers: Iterable<CallChecker>,
         private val languageFeatureSettings: LanguageVersionSettings,
@@ -70,9 +69,9 @@ class KotlinToResolvedCallTransformer(
         private val expressionTypingServices: ExpressionTypingServices,
         private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
         private val additionalDiagnosticReporter: AdditionalDiagnosticReporter,
-        private val effectSystem: EffectSystem
+        private val effectSystem: EffectSystem,
+        private val moduleDescriptor: ModuleDescriptor
 ) {
-
     companion object {
         private val REPORT_MISSING_NEW_INFERENCE_DIAGNOSTIC
             get() = false
@@ -102,9 +101,10 @@ class KotlinToResolvedCallTransformer(
             }
             CallResolutionResult.Type.ERROR, CallResolutionResult.Type.COMPLETED -> {
                 val resultSubstitutor = baseResolvedCall.constraintSystem.buildResultingSubstitutor()
-                val ktPrimitiveCompleter = ResolvedAtomCompleter(resultSubstitutor, context.trace, context, this,
-                                                                 expressionTypingServices, argumentTypeResolver, doubleColonExpressionResolver,
-                                                                 languageFeatureSettings, deprecationResolver)
+                val ktPrimitiveCompleter = ResolvedAtomCompleter(
+                        resultSubstitutor, context.trace, context, this, expressionTypingServices, argumentTypeResolver,
+                        doubleColonExpressionResolver, languageFeatureSettings, deprecationResolver, moduleDescriptor
+                )
 
                 for (subKtPrimitive in candidate.subResolvedAtoms) {
                     ktPrimitiveCompleter.completeAll(subKtPrimitive)

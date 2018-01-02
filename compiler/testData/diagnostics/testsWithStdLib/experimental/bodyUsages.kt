@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
+// MODULE: api
 // FILE: api.kt
 
 package api
@@ -11,6 +12,7 @@ interface I
 @ExperimentalSourceOnlyAPI
 class Impl : I
 
+// MODULE: usage(api)
 // FILE: usage.kt
 
 package usage
