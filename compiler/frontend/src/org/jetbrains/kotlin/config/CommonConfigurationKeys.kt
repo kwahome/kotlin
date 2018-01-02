@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.config
 
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.name.FqName
 
 object CommonConfigurationKeys {
     @JvmField
@@ -31,6 +32,12 @@ object CommonConfigurationKeys {
 
     @JvmField
     val REPORT_OUTPUT_FILES = CompilerConfigurationKey<Boolean>("report output files")
+
+    @JvmField
+    val EXPERIMENTAL = CompilerConfigurationKey<List<FqName>>("@Experimental annotation FQ names")
+
+    @JvmField
+    val USE_EXPERIMENTAL = CompilerConfigurationKey<List<FqName>>("@UseExperimental annotation FQ names")
 
     @JvmField
     val LOOKUP_TRACKER = CompilerConfigurationKey.create<LookupTracker>("lookup tracker")

@@ -1,0 +1,3 @@
+@org.foo.A
+test
+  test/MainKt

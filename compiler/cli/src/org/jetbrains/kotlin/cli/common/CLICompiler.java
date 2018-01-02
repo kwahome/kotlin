@@ -19,32 +19,28 @@ package org.jetbrains.kotlin.cli.common;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import kotlin.collections.ArraysKt;
+import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.analyzer.AnalysisResult;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
-import org.jetbrains.kotlin.cli.common.messages.GroupingMessageCollector;
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector;
-import org.jetbrains.kotlin.cli.common.messages.MessageCollectorUtil;
-import org.jetbrains.kotlin.cli.common.messages.MessageRenderer;
+import org.jetbrains.kotlin.cli.common.messages.*;
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler;
 import org.jetbrains.kotlin.cli.jvm.compiler.CompilerJarLocator;
 import org.jetbrains.kotlin.config.*;
+import org.jetbrains.kotlin.name.FqName;
+import org.jetbrains.kotlin.name.FqNameUnsafe;
 import org.jetbrains.kotlin.progress.CompilationCanceledException;
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus;
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus;
-import org.jetbrains.kotlin.utils.KotlinPaths;
-import org.jetbrains.kotlin.utils.KotlinPathsFromHomeDir;
-import org.jetbrains.kotlin.utils.PathUtil;
-import org.jetbrains.kotlin.utils.StringsKt;
+import org.jetbrains.kotlin.utils.*;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.jetbrains.kotlin.cli.common.ExitCode.*;
 import static org.jetbrains.kotlin.cli.common.environment.UtilKt.setIdeaIoUseFallback;
@@ -153,6 +149,13 @@ public abstract class CLICompiler<A extends CommonCompilerArguments> extends CLI
         if (arguments.getReportOutputFiles()) {
             configuration.put(CommonConfigurationKeys.REPORT_OUTPUT_FILES, true);
         }
+        if (arguments.getExperimental() != null) {
+            configuration.put(CommonConfigurationKeys.EXPERIMENTAL, toListOfFqNames(arguments.getExperimental(), configuration));
+        }
+        if (arguments.getUseExperimental() != null) {
+            configuration.put(CommonConfigurationKeys.USE_EXPERIMENTAL, toListOfFqNames(arguments.getUseExperimental(), configuration));
+        }
+
         @SuppressWarnings("deprecation")
         CompilerJarLocator locator = services.get(CompilerJarLocator.class);
         if (locator != null) {
@@ -160,6 +163,22 @@ public abstract class CLICompiler<A extends CommonCompilerArguments> extends CLI
         }
 
         setupLanguageVersionSettings(configuration, arguments);
+    }
+
+    private static List<FqName> toListOfFqNames(@NotNull String[] fqNames, @NotNull CompilerConfiguration configuration) {
+        return ArraysKt.mapNotNull(fqNames, (name) -> {
+            if (!name.isEmpty() && FqNameUnsafe.isValid(name)) {
+                FqNameUnsafe fqName = new FqNameUnsafe(name);
+                if (fqName.isSafe() && CollectionsKt.none(fqName.pathSegments(), (s) -> s.asString().isEmpty())) {
+                    return fqName.toSafe();
+                }
+            }
+
+            configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY).report(
+                    CompilerMessageSeverity.STRONG_WARNING, "Incorrect annotation FQ name is ignored: " + name, null
+            );
+            return null;
+        });
     }
 
     private void setupLanguageVersionSettings(@NotNull CompilerConfiguration configuration, @NotNull A arguments) {

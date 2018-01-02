@@ -31,7 +31,8 @@ class JvmModuleProtoBufTest : KtUsefulTestCase() {
     private fun doTest(
             relativeDirectory: String,
             compileWith: LanguageVersion = LanguageVersion.LATEST_STABLE,
-            loadWith: LanguageVersion = LanguageVersion.LATEST_STABLE
+            loadWith: LanguageVersion = LanguageVersion.LATEST_STABLE,
+            extraOptions: List<String> = emptyList()
     ) {
         val directory = KotlinTestUtils.getTestDataPathBase() + relativeDirectory
         val tmpdir = KotlinTestUtils.tmpDir(this::class.simpleName)
@@ -42,7 +43,7 @@ class JvmModuleProtoBufTest : KtUsefulTestCase() {
                 "-d", tmpdir.path,
                 "-module-name", moduleName,
                 "-language-version", compileWith.versionString
-        ))
+        ) + extraOptions)
 
         val mapping = ModuleMapping.create(
                 File(tmpdir, "META-INF/$moduleName.${ModuleMapping.MAPPING_FILE_EXT}").readBytes(), "test",
@@ -51,6 +52,9 @@ class JvmModuleProtoBufTest : KtUsefulTestCase() {
                 )
         )
         val result = buildString {
+            for (annotationClassId in mapping.annotations) {
+                appendln("@${annotationClassId.asSingleFqName()}")
+            }
             for ((fqName, packageParts) in mapping.packageFqName2Parts) {
                 appendln(fqName)
                 for (part in packageParts.parts) {
@@ -87,5 +91,9 @@ class JvmModuleProtoBufTest : KtUsefulTestCase() {
     fun testJvmPackageNameLanguageVersion11() {
         doTest("/moduleProtoBuf/jvmPackageNameLanguageVersion11",
                compileWith = LanguageVersion.KOTLIN_1_2, loadWith = LanguageVersion.KOTLIN_1_1)
+    }
+
+    fun testExperimental() {
+        doTest("/moduleProtoBuf/experimental", extraOptions = listOf("-Xexperimental=org.foo.A", "-Xuse-experimental=org.foo.B"))
     }
 }
